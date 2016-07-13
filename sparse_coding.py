@@ -17,7 +17,7 @@ args = parser.parse_args()
 
 
 shape = (8,8)
-sparse_coding = True
+sparse_coding = False
 n_batch = 128
 n_iter = 200
 epochs = 50
@@ -54,7 +54,7 @@ x_batch = T.matrix()
 if sparse_coding:
     x_hat = T.dot(a,w)
 else:
-    x_hat = 1.
+    x_hat = T.max(a.dimshuffle(0,1,'x')*w.dimshuffle('x',0,1), axis=1)
 recon = (.5*(x- x_hat)**2).sum(axis=1).mean()
 coeff = abs(a).sum(axis=1).mean()
 l0 = T.neq(a,0.).sum(axis=1).mean()
