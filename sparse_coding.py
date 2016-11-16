@@ -14,6 +14,7 @@ import cPickle
 sparse_coding = True
 dataset = 'images'
 fista = True
+pos_only = True
 
 
 shape = (8,8)
@@ -108,14 +109,18 @@ if fista:
     t1 = 0.5 * (1 + T.sqrt(1. + 4. * t ** 2))
     a_new_sc = a_ista_sc + (t1 - 1.) / t * (a_ista_sc - a_old)
     a_new_mca = a_ista_mca + (t1 - 1.) / t * (a_ista_mca - a_old)
-
-    updates_sc[a] = a_new_sc
-    updates_sc[a_old] = a_ista_sc
-    updates_sc[t] = t1
-
-    updates_mca[a] = a_new_mca
-    updates_mca[a_old] = a_ista_mca
+    if pos_only:
+        updates_sc[a] = T.nnet.relu(a_new_sc) 
+        updates_sc[a_old] = T.nnet.relu(a_ista_sc)
+        updates_mca[a] = T.nnet.relu(a_new_mca)
+        updates_mca[a_old] = T.nnet.relu(a_ista_mca)
+    else:
+        updates_sc[a] = a_new_sc
+        updates_sc[a_old] = a_ista_sc
+        updates_mca[a] = a_new_mca
+        updates_mca[a_old] = a_ista_mca
     updates_mca[t] = t1
+    updates_sc[t] = t1
 else:
     a_prime = a - eps_a*grad_recon_a
     a_dprime = a_prime - eps_a*grad_sparse_a
@@ -200,5 +205,5 @@ model['hist_array'] = hist_array
 model['coeff_array'] = coeff_array
 model['im_array'] = im_array
 model['w_array'] = w_array
-with open(args.file_name, 'w') as f:
+with open(file_name, 'w') as f:
     cPickle.dump(model, f) 
